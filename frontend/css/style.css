@@ -5491,3 +5491,17 @@ input:checked+.slider:before {
         justify-content: flex-end;
     }
 }
+.custom-auth-bg {
+    background: linear-gradient(to bottom right, #f8fafc, #dbeafe);
+    min-height: 100vh;
+}
+
+.auth-btn {
+    transition: all 0.3s ease;
+}
+
+.auth-btn:hover {
+    transform: scale(1.03);
+    background: #1e3a8a;
+    box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
+}
