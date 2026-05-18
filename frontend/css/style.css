@@ -3465,6 +3465,11 @@ display: grid;
     z-index: 10;
 }
 
+body.auth-page .main-footer,
+body.library-page .main-footer {
+    margin-top: 0;
+}
+
 .footer-container {
     max-width: 1200px;
     margin: 0 auto;

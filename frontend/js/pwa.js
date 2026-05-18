@@ -104,6 +104,7 @@
 
         const banner = document.createElement('div');
         banner.id = 'pwa-install-banner';
+        banner.className = 'pwa-install-banner';
         banner.setAttribute('role', 'banner');
         banner.setAttribute('aria-label', 'Install BiblioDrift app');
         banner.innerHTML = `
@@ -127,7 +128,14 @@
             </div>
         `;
 
-        document.querySelector("main").appendChild(banner);
+        const footer = document.querySelector(".main-footer");
+        if (footer) {
+            footer.parentNode.insertBefore(banner, footer);
+        } else {
+            const main = document.querySelector("main");
+            if (main) main.appendChild(banner);
+            else document.body.appendChild(banner);
+        }
 
         // Animate in
         requestAnimationFrame(() => banner.classList.add('pwa-banner-visible'));
