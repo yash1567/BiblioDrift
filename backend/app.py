@@ -1355,8 +1355,11 @@ def sync_library():
         if str(user_id) != str(current_user_id):
             return forbidden_error("Cannot sync to another user's library")
 
+        # NOTE: validated_data.items is List[Dict[str, Any]] per SyncLibraryRequest validator.
+        # Each item_data is a raw dictionary (not a Pydantic model), so .get() and isinstance()
+        # checks are safe. Sanitization happens after ID validation to prevent XSS in valid books.
         invalid_ids = []
-        for index, item_data in enumerate(raw_items):
+        for index, item_data in enumerate(validated_data.items):
             if not isinstance(item_data, dict):
                 continue
             raw_google_id = item_data.get('id')
@@ -1372,7 +1375,7 @@ def sync_library():
             return validation_error("Invalid Google Books ID format in sync payload")
 
         # Sanitize the items list only after validating Google Books IDs.
-        items = sanitize_payload(raw_items)
+        items = sanitize_payload(validated_data.items)
         
         synced_count = 0
         conflicts = 0
