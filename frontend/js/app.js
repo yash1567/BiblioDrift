@@ -3945,3 +3945,132 @@ window.addEventListener('offline', handleConnectivityChange);
 
 // Run a status check right away on startup in case the user loads the app while already disconnected
 document.addEventListener('DOMContentLoaded', handleConnectivityChange);
+// Reading Mood Quiz - manager-based implementation
+class ReadingMoodQuizManager {
+        constructor(libraryManager, renderer) {
+                this.libraryManager = libraryManager;
+                this.renderer = renderer;
+                this.section = null;
+                this.quizAnswers = {};
+        }
+
+        init() {
+                this.section = document.getElementById('reading-mood-quiz') || document.getElementById('readingMoodQuiz');
+                if (!this.section) return;
+
+                this.quizOptionGroups = this.section.querySelectorAll('.quiz-options');
+                this.generateBtn = this.section.querySelector('#generateMoodTags');
+                this.results = this.section.querySelector('#quizResults');
+                this.moodTagsContainer = this.section.querySelector('#moodTags');
+                this.retakeBtn = this.section.querySelector('#retakeQuiz');
+
+                if (!this.quizOptionGroups.length || !this.generateBtn || !this.results || !this.moodTagsContainer || !this.retakeBtn) {
+                        return;
+                }
+
+                this._wireOptions();
+                this._wireButtons();
+                this.loadSavedMoodTags();
+                this._updateGenerateButtonState();
+        }
+
+        _wireOptions() {
+                this.quizOptionGroups.forEach(group => {
+                        const key = group.dataset.question;
+                        const buttons = group.querySelectorAll('button');
+                        buttons.forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                        buttons.forEach(b => b.classList.remove('selected'));
+                                        btn.classList.add('selected');
+                                        this.quizAnswers[key] = btn.dataset.value;
+                                        this._updateGenerateButtonState();
+                                });
+                        });
+                });
+        }
+
+        _wireButtons() {
+                this.generateBtn.addEventListener('click', async () => {
+                        const tags = Object.values(this.quizAnswers).filter(Boolean);
+                        this.renderMoodTags(tags);
+                        // Persist using SafeStorage wrapper
+                        try { SafeStorage.set('readingMoodTags', JSON.stringify(tags)); } catch (e) { localStorage.setItem('readingMoodTags', JSON.stringify(tags)); }
+
+                        // Compose a generated query from tags and render results
+                        const generatedMoodQuery = tags.join(' ');
+                        try {
+                                if (this.renderer && typeof this.renderer.renderCuratedSection === 'function') {
+                                        this.renderer.renderCuratedSection(generatedMoodQuery, 'mood-quiz-results-grid', 16);
+                                }
+                        } catch (e) {
+                                console.error('Mood quiz: failed to render curated section', e);
+                        }
+                });
+
+                this.retakeBtn.addEventListener('click', () => {
+                        this.quizAnswers = {};
+                        this.quizOptionGroups.forEach(group => {
+                                group.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
+                        });
+                        this.moodTagsContainer.innerHTML = '';
+                        this.results.hidden = true;
+                        try { SafeStorage.remove('readingMoodTags'); } catch (e) { localStorage.removeItem('readingMoodTags'); }
+                        this._updateGenerateButtonState();
+                });
+        }
+
+        _updateGenerateButtonState() {
+                const total = this.quizOptionGroups.length;
+                const answered = Object.keys(this.quizAnswers).length;
+                this.generateBtn.disabled = answered !== total;
+        }
+
+        renderMoodTags(tags) {
+                this.moodTagsContainer.innerHTML = '';
+                tags.forEach(tag => {
+                        const span = document.createElement('span');
+                        span.textContent = `#${tag}`;
+                        this.moodTagsContainer.appendChild(span);
+                });
+                this.results.hidden = false;
+        }
+
+        loadSavedMoodTags() {
+                let saved = null;
+                try { saved = SafeStorage.get('readingMoodTags'); } catch (e) { saved = localStorage.getItem('readingMoodTags'); }
+                if (saved) {
+                        try {
+                                const tags = JSON.parse(saved);
+                                if (Array.isArray(tags) && tags.length > 0) this.renderMoodTags(tags);
+                        } catch (e) { /* ignore */ }
+                }
+        }
+}
+
+// Initialize the manager if the page contains the quiz. Wait for library/renderer readiness.
+function _startReadingMoodQuiz() {
+        const startIfReady = () => {
+                const el = document.getElementById('reading-mood-quiz') || document.getElementById('readingMoodQuiz');
+                if (!el) return;
+                if (window.libManager && window.renderer) {
+                        window.moodQuizManager = new ReadingMoodQuizManager(window.libManager, window.renderer);
+                        window.moodQuizManager.init();
+                } else {
+                        // Wait for library-manager-ready event
+                        window.addEventListener('bibliodrift:library-manager-ready', () => {
+                                if (window.libManager && window.renderer) {
+                                        window.moodQuizManager = new ReadingMoodQuizManager(window.libManager, window.renderer);
+                                        window.moodQuizManager.init();
+                                }
+                        }, { once: true });
+                }
+        };
+
+        if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', startIfReady, { once: true });
+        } else {
+                startIfReady();
+        }
+}
+
+_startReadingMoodQuiz();
