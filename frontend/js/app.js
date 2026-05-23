@@ -83,6 +83,7 @@ const IS_DEV =
   typeof window !== "undefined" &&
   ["localhost", "127.0.0.1"].includes(window.location.hostname);
 const moodAnalysisCache = new Map();
+const APP_ROUTE = window.location.pathname.endsWith('/app.html') ? 'app.html' : 'app.html';
 
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
@@ -3392,6 +3393,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
       });
     });
+    const searchInput = document.getElementById('searchInput');
+    const searchIcon = document.querySelector('.search-bar .search-icon');
+
+    const performSearch = () => {
+        if (searchInput && searchInput.value.trim()) {
+            // Only redirect to discovery search if we're not already on the library page 
+            // where search is handled by the local library filter.
+            if (!window.location.pathname.includes('library.html')) {
+                window.location.href = `${APP_ROUTE}?q=${encodeURIComponent(searchInput.value.trim())}`;
+            }
+        }
+    };
 
     let topVibe = "Mystery"; // Fallback
     if (Object.keys(categoryCounts).length > 0) {
@@ -3936,6 +3949,41 @@ document.addEventListener("DOMContentLoaded", async () => {
             `;
       achievementsGrid.appendChild(card);
     });
+            achievementsGrid.appendChild(card);
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try {
+                // Clear backend cookies
+                await fetch(`${MOOD_API_BASE}/logout`, { method: 'POST', credentials: 'include' });
+            } catch (e) {
+                console.warn("Backend logout failed", e);
+            }
+            SafeStorage.remove('bibliodrift_user');
+            SafeStorage.remove('bibliodrift_token');
+            SafeStorage.remove('isLoggedIn');
+            window.location.href = APP_ROUTE;
+        });
+    }
+    // Scroll Manager (Back to Top)
+    const backToTopBtn = document.getElementById('backToTop');
+    if (backToTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 200) {
+                backToTopBtn.classList.remove('hidden');
+            } else {
+                backToTopBtn.classList.add('hidden');
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
 
     // Logout
     document
