@@ -1860,3 +1860,34 @@ body.is-leaving {
     .contributors-panel { padding: 0.85rem; border-radius: 22px; }
     .contributors-grid-view { grid-template-columns: 1fr; }
 }
+
+
+/* Dark Theme Overrides */
+html[data-theme='night'] {
+    --landing-bg: #1a1512;
+    --landing-surface: rgba(44, 36, 32, 0.72);
+    --landing-surface-strong: rgba(44, 36, 32, 0.86);
+    --landing-border: rgba(212, 175, 55, 0.12);
+    --landing-border-light: rgba(212, 175, 55, 0.08);
+    --landing-ink: #f0e6d2;
+    --landing-muted: rgba(240, 230, 210, 0.6);
+    --landing-rose: #b87a7a;
+    --landing-sage: #758b7a;
+    --landing-slate: #7f96a0;
+    --landing-gold: #d4af37;
+    --landing-wood: #4a3b32;
+    --landing-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    --landing-shadow-strong: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme='night'] body.landing-page {
+    background:
+        radial-gradient(circle at top left, rgba(212, 175, 55, 0.08), transparent 28%),
+        radial-gradient(circle at 82% 16%, rgba(212, 175, 55, 0.06), transparent 26%),
+        radial-gradient(circle at 12% 78%, rgba(127, 150, 160, 0.08), transparent 24%),
+        linear-gradient(180deg, #161210 0%, #1a1512 44%, #1e1815 100%);
+}
+
+html[data-theme='night'] .landing-header {
+    background: rgba(26, 21, 18, 0.92);
+}
