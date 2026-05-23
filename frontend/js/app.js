@@ -344,9 +344,8 @@ async function verifyStoredAuthSession() {
             }
             return null;
         } catch (error) {
-            console.warn('Auth verification could not reach the server; clearing local session.', error);
-            clearStoredAuthState();
-            return null;
+            console.warn('Auth verification failed (network error); using cached session state if available.', error);
+            return storedUser;
         }
     })();
 
