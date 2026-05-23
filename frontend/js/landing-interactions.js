@@ -211,3 +211,9 @@
         });
     });
 })();
+
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        document.body.classList.remove('is-leaving');
+    }
+});
